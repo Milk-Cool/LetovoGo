@@ -24,12 +24,16 @@ const InputField = props => <TextInput
 
 const Tab = createBottomTabNavigator();
 
+Date.prototype.getDayMon = function(){
+  return [6, 0, 1, 2, 3, 4, 5][this.getDay()]
+};
+
 export default function App() {
   const todayDate = new Date();
   const today = todayDate.toISOString().split("T")[0];
   let days = [];
-  for(let i = 1; i <= 7; i++)
-    days.push((new Date(new Date() - (todayDate.getDay() - i) * 1000 * 60 * 60 * 24)).toISOString().split("T")[0]);
+  for(let i = 0; i < 7; i++)
+    days.push((new Date(new Date() - (todayDate.getDayMon() - i) * 1000 * 60 * 60 * 24)).toISOString().split("T")[0]);
 
   const [schedule, setSchedule] = useState([]);
   const [selDay, setSelDay] = useState(today);
