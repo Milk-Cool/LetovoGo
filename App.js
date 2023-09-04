@@ -128,10 +128,10 @@ export default function App() {
         await user.login();
         await user.loginOld();
         if(!silent) Alert.alert("Success!", "You have successfully logged in.");
-        setSchedule(await user.weekSchedule());
-        setPlan(await user.plan());
-        setHomework(await user.homework());
-        setHomework2(await user.homework(new Date(+(new Date()) + 1000 * 60 * 60 * 24 * 7)));
+        user.weekSchedule().then(setSchedule);
+        user.plan().then(setPlan);
+        user.homework().then(setHomework);
+        user.homework(new Date(+(new Date()) + 1000 * 60 * 60 * 24 * 7)).then(setHomework2);
         setLoggedIn_(true);
         loggingIn = false;
       } catch(_) {
