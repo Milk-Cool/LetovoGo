@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { StyleSheet, Text, View,
-  TextInput, Pressable, Alert, ScrollView } from "react-native";
+  TextInput, Pressable, Alert, ScrollView,
+  TouchableHighlight, Linking } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Letovo from "letovo-api";
-import { NavigationContainer } from "@react-navigation/native";
+import { Link, NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { Picker } from "@react-native-picker/picker";
@@ -13,6 +14,9 @@ const SECONDARY_COLOR = "#888";
 const BUTTON_TEXT_COLOR = "#fff";
 
 let loggedIn = false;
+let loggedIn_ = false;
+
+let user = null;
 
 const InputField = props => <TextInput
   style={styles.text_field}
@@ -38,6 +42,7 @@ export default function App() {
   const [schedule, setSchedule] = useState([]);
   const [selDay, setSelDay] = useState(today);
   const [plan, setPlan] = useState({});
+  const [homework, setHomework] = useState([]);
   
   const generateTable = () => {
     let col = [];
@@ -55,6 +60,7 @@ export default function App() {
     return col;
   }
   const generatePlan = () => {
+    if(typeof plan.student_curriculum === "undefined") return [];
     let col = [];
     for(let i of plan.student_curriculum) {
       col.push(
@@ -68,11 +74,26 @@ export default function App() {
     }
     return col;
   }
+  const generateHomework = () => {
+    let col = [];
+    for(let i in homework)
+      for(let j of homework[i]) {
+        if(j.task == "") continue;
+        col.push(
+          <View>
+            <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{j.name + "\n"}</Text>
+            <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{["Monday", "Tuesday", "Wednesday", "Thursday", "Firday", "Saturday", "Sunday"][i] + "\n"}</Text>
+            <Text style={styles.buttonText}>{j.task}</Text>
+            <Text>{j.link ? <TouchableHighlight onPress={() => Linking.openURL(j.link)}><Text style={{ ...styles.buttonText, textDecorationLine: "underline", fontSize: 30 }}>Link</Text></TouchableHighlight> : <Text style={styles.buttonText}>No link</Text>}</Text>
+          </View>
+        );
+      }
+    return col;
+  }
 
   const LoginScreen = props => {
     const [uname, setUname] = useState("");
     const [pwd, setPwd] = useState("");
-    let user;
 
     const saveLoginPassword = async () => {
       await AsyncStorage.setItem("uname", uname);
@@ -100,10 +121,13 @@ export default function App() {
       }
       try {
         await user.login();
-        if(silent) props.navigation.navigate("Schedule");
-        else Alert.alert("Success!", "You have successfully logged in.");
+        await user.loginOld();
+        if(!silent) Alert.alert("Success!", "You have successfully logged in.");
         setSchedule(await user.weekSchedule());
         setPlan(await user.plan());
+        // TODO: add support for selecting a date
+        setHomework(await user.homework());
+        loggedIn_ = true;
       } catch(_) {
         Alert.alert("Wrong username/password!", "Please enter a valid username/password pair.");
       }
@@ -117,7 +141,7 @@ export default function App() {
     return (
       <View style={styles.container}>
         <InputField
-          placeholder="Username"
+          placeholder="Username (without @student...)"
           onChangeText={setUname}
           autoComplete="username"
         />
@@ -136,6 +160,25 @@ export default function App() {
       </View>
     )
   };
+  const LogoutScreen = () => {
+    const logout = async () => {
+      await AsyncStorage.setItem("uname", "");
+      await AsyncStorage.setItem("pwd", "");
+      loggedIn_ = false;
+      user = null;
+    }
+    return (
+      <View style={styles.container}>
+        <Pressable
+          style={styles.button}
+          onPress={() => logout()}
+        >
+          <Text style={styles.buttonText}>Log out</Text>
+        </Pressable>
+        <Text style={{ maxWidth: 300, textAlign: "center" }}>Logging out will delete your login credentials from your device and you will not be able to log in automatically.</Text>
+      </View>
+    );
+  }
 
   const ScheduleList = ({ data }) => {
     const schd = data.map(x => <View style={styles.schedule_item}>
@@ -148,7 +191,7 @@ export default function App() {
     return (
       <ScrollView contentContainerStyle={{ justifyContent: "center", alignContent: "center" }}>
         <Picker
-          style={{ width: 300 }}
+          style={{ alignSelf: "stretch" }}
           selectedValue={selDay}
           onValueChange={setSelDay}
         >
@@ -171,6 +214,14 @@ export default function App() {
         <ScheduleList data={generatePlan()} />
       </ScrollView>
     );
+  };
+
+  const HomeworkScreen = () => {
+    return (
+      <ScrollView contentContainerStyle={{ justifyContent: "center", alignContent: "center" }}>
+        <ScheduleList data={generateHomework()} />
+      </ScrollView>
+    );
   }
 
   return (
@@ -182,6 +233,10 @@ export default function App() {
               iconName = focused
                 ? "log-in"
                 : "log-in-outline";
+            } else if (route.name === "Log out") {
+              iconName = focused
+                ? "log-out"
+                : "log-out-outline";
             } else if (route.name === "Schedule") {
               iconName = focused
                 ? "time"
@@ -190,18 +245,27 @@ export default function App() {
               iconName = focused
                 ? "people"
                 : "people-outline";
+            } else if (route.name === "Homework") {
+              iconName = focused
+                ? "document"
+                : "document-outline";
             }
             return <Ionicons name={iconName} size={size} color={color} />;
           },
           tabBarActiveTintColor: ACCENT_COLOR,
           tabBarInactiveTintColor: SECONDARY_COLOR,
         })}>
-        <Tab.Screen name="Log in" component={LoginScreen} />
+        <Tab.Screen name={loggedIn_ ? "Log out" : "Log in"} component={loggedIn_ ? LogoutScreen : LoginScreen} />
         <Tab.Screen name="Schedule" component={ScheduleScreen} />
         <Tab.Screen name="Groups" component={GroupsScreen} />
+        <Tab.Screen name="Homework" component={HomeworkScreen} />
       </Tab.Navigator>
     </NavigationContainer>
   );
+  /*{loggedIn_
+    ? <Tab.Screen name="Log out" component={LogoutScreen} />
+    : <Tab.Screen name="Log in" component={LoginScreen} />
+  }*/
 }
 
 const styles = StyleSheet.create({
@@ -240,3 +304,5 @@ const styles = StyleSheet.create({
     elevation: 3,
   }
 });
+
+setInterval(() => console.log(loggedIn_), 500)
