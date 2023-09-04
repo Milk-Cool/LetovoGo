@@ -1,3 +1,4 @@
+import "react-native-gesture-handler";
 import { useState } from "react";
 import { StyleSheet, Text, View,
   TextInput, Pressable, Alert, ScrollView,
@@ -8,6 +9,7 @@ import { Link, NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { Picker } from "@react-native-picker/picker";
+import { createStackNavigator } from "@react-navigation/stack";
 
 const ACCENT_COLOR = "#88f";
 const SECONDARY_COLOR = "#888";
@@ -27,6 +29,7 @@ const InputField = props => <TextInput
 />
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 
 Date.prototype.getDayMon = function(){
   return [6, 0, 1, 2, 3, 4, 5][this.getDay()];
@@ -46,6 +49,7 @@ export default function App() {
   const [homework, setHomework] = useState([]);
   const [homework2, setHomework2] = useState([]);
   const [loggedIn_, setLoggedIn_] = useState(false);
+  const [marks, setMarks] = useState([]);
   
   const generateTable = () => {
     let col = [];
@@ -71,7 +75,7 @@ export default function App() {
           <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{i.group.group_name + "\n"}</Text>
           <Text style={styles.buttonText}>{i.group.subject.subject_name_eng + "\n"}</Text>
           <Text style={{ fontSize: 8, ...styles.buttonText }}>{`${i.group.group_teachers[0].teacher.teacher_surname_eng} ${i.group.group_teachers[0].teacher.teacher_name_eng} ${i.group.group_teachers[0].teacher.teacher_fath_eng}`}</Text>
-          <Text style={{ fontSize: 8, ...styles.buttonText }}>{`${i.group.group_teachers[0].teacher.teacher_mail}`}</Text>
+          <TouchableHighlight onPress={() => Linking.openURL("mailto:" + i.group.group_teachers[0].teacher.teacher_mail)}><Text style={{ fontSize: 8, textDecorationLine: "underline", ...styles.buttonText }}>{`${i.group.group_teachers[0].teacher.teacher_mail}`}</Text></TouchableHighlight>
         </View>
       );
     }
@@ -92,6 +96,23 @@ export default function App() {
           </View>
         );
       }
+    return col;
+  }
+  const generateMarks = () => {
+    let col = [];
+    for(let i of marks) {
+      if(i.formative_list.length == 0 && i.summative_list.length == 0 && i.final_mark_list == 0) continue;
+      col.push(
+        <View>
+          <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{"Summatives average: " + i.summative_avg_value}</Text>
+          <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{"Formatives average: " + i.formative_avg_value}</Text>
+          <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{"Finals average: " + i.result_final_mark}</Text>
+          { i.formative_list.map(x => <Pressable onPress={() => Alert.alert(x.lesson_thema, x.created_at)} style={styles.invertedSchedule_item}><Text style={styles.invertedButtonText}>{(x.mark_criterion ?? "F") + " " + x.mark_value}</Text></Pressable>) }
+          { i.summative_list.map(x => <Pressable onPress={() => Alert.alert(x.lesson_thema, x.created_at)} style={styles.invertedSchedule_item}><Text style={styles.invertedButtonText}>{(x.mark_criterion ?? "F") + " " + x.mark_value}</Text></Pressable>) }
+          { i.final_mark_list.map(x => <Pressable onPress={() => Alert.alert(x.lesson_thema, x.created_at)} style={styles.invertedSchedule_item}><Text style={styles.invertedButtonText}>{(x.mark_criterion ?? "F") + " " + x.mark_value}</Text></Pressable>) }
+        </View>
+      );
+    }
     return col;
   }
 
@@ -132,6 +153,7 @@ export default function App() {
         user.plan().then(setPlan);
         user.homework().then(setHomework);
         user.homework(new Date(+(new Date()) + 1000 * 60 * 60 * 24 * 7)).then(setHomework2);
+        user.marks().then(setMarks);
         setLoggedIn_(true);
         loggingIn = false;
       } catch(_) {
@@ -243,6 +265,37 @@ export default function App() {
     );
   }
 
+  const MarksScreen = () => {
+    return (
+      <ScrollView contentContainerStyle={{ justifyContent: "center", alignContent: "center" }}>
+        <ScheduleList data={generateMarks()} />
+      </ScrollView>
+    );
+  }
+
+  const OtherChooserScreen = ({ navigation }) => {
+    return (
+      <ScrollView contentContainerStyle={{ justifyContent: "center", alignContent: "center" }}>
+        <Pressable
+          style={styles.option}
+          onPress={() => navigation.navigate("Marks")}
+        >
+          <Text style={styles.optionText}>Marks</Text>
+          <Ionicons style={styles.optionArrow} name="chevron-forward-outline" size={22} />
+        </Pressable>
+      </ScrollView>
+    )
+  }
+
+  const OtherScreen = () => {
+    return (
+      <Stack.Navigator>
+        <Stack.Screen name="Other options" component={OtherChooserScreen} />
+        <Stack.Screen name="Marks" component={MarksScreen} />
+      </Stack.Navigator>
+    );
+  }
+
   return (
     <NavigationContainer>
       <Tab.Navigator screenOptions={({ route }) => ({
@@ -268,6 +321,10 @@ export default function App() {
               iconName = focused
                 ? "document"
                 : "document-outline";
+            } else if (route.name === "Other") {
+              iconName = focused
+                ? "ellipsis-horizontal"
+                : "ellipsis-horizontal-outline";
             }
             return <Ionicons name={iconName} size={size} color={color} />;
           },
@@ -278,6 +335,7 @@ export default function App() {
         <Tab.Screen name="Schedule" component={ScheduleScreen} />
         <Tab.Screen name="Groups" component={GroupsScreen} />
         <Tab.Screen name="Homework" component={HomeworkScreen} />
+        <Tab.Screen name="Other" component={OtherScreen} options={{ headerShown: false }} />
       </Tab.Navigator>
     </NavigationContainer>
   );
@@ -314,6 +372,17 @@ const styles = StyleSheet.create({
   buttonText: {
     color: BUTTON_TEXT_COLOR,
   },
+  invertedSchedule_item: {
+    margin: 15,
+    padding: 15,
+    backgroundColor: BUTTON_TEXT_COLOR,
+    borderRadius: 5,
+    alignSelf: "flex-start",
+    elevation: 3,
+  },
+  invertedButtonText: {
+    color: ACCENT_COLOR,
+  },
   schedule_item: {
     margin: 15,
     padding: 15,
@@ -321,5 +390,21 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     minWidth: 250,
     elevation: 3,
+  },
+  option: {
+    padding: 15,
+    borderBottomWidth: 1.5,
+    borderBottomColor: SECONDARY_COLOR,
+    flexDirection: "row",
+  },
+  optionText: {
+    fontSize: 18,
+    color: ACCENT_COLOR,
+    flex: 1,
+    justifyContent: "flex-start"
+  },
+  optionArrow: {
+    color: ACCENT_COLOR,
+    justifyContent: "flex-end"
   }
 });
