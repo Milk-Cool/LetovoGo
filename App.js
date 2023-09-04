@@ -14,7 +14,7 @@ const SECONDARY_COLOR = "#888";
 const BUTTON_TEXT_COLOR = "#fff";
 
 let loggedIn = false;
-let loggedIn_ = false;
+let loggingIn = false;
 
 let user = null;
 
@@ -29,7 +29,7 @@ const InputField = props => <TextInput
 const Tab = createBottomTabNavigator();
 
 Date.prototype.getDayMon = function(){
-  return [6, 0, 1, 2, 3, 4, 5][this.getDay()]
+  return [6, 0, 1, 2, 3, 4, 5][this.getDay()];
 };
 
 export default function App() {
@@ -41,8 +41,11 @@ export default function App() {
 
   const [schedule, setSchedule] = useState([]);
   const [selDay, setSelDay] = useState(today);
+  const [selWeek, setSelWeek] = useState("this");
   const [plan, setPlan] = useState({});
   const [homework, setHomework] = useState([]);
+  const [homework2, setHomework2] = useState([]);
+  const [loggedIn_, setLoggedIn_] = useState(false);
   
   const generateTable = () => {
     let col = [];
@@ -76,8 +79,9 @@ export default function App() {
   }
   const generateHomework = () => {
     let col = [];
-    for(let i in homework)
-      for(let j of homework[i]) {
+    const hw = selWeek == "this" ? homework : homework2; 
+    for(let i in hw)
+      for(let j of hw[i]) {
         if(j.task == "") continue;
         col.push(
           <View>
@@ -119,17 +123,20 @@ export default function App() {
         await saveLoginPassword();
         user = new Letovo(uname, pwd);
       }
+      loggingIn = true;
       try {
         await user.login();
         await user.loginOld();
         if(!silent) Alert.alert("Success!", "You have successfully logged in.");
         setSchedule(await user.weekSchedule());
         setPlan(await user.plan());
-        // TODO: add support for selecting a date
         setHomework(await user.homework());
-        loggedIn_ = true;
+        setHomework2(await user.homework(new Date(+(new Date()) + 1000 * 60 * 60 * 24 * 7)));
+        setLoggedIn_(true);
+        loggingIn = false;
       } catch(_) {
         Alert.alert("Wrong username/password!", "Please enter a valid username/password pair.");
+        loggingIn = false;
       }
     }
     (async () => {
@@ -153,9 +160,9 @@ export default function App() {
         />
         <Pressable
           style={styles.button}
-          onPress={() => login(false)}
+          onPress={() => loggingIn ? null : login(false)}
         >
-          <Text style={styles.buttonText}>Log in</Text>
+          <Text style={styles.buttonText}>{loggingIn ? "Logging in..." : "Log in"}</Text>
         </Pressable>
       </View>
     )
@@ -164,7 +171,11 @@ export default function App() {
     const logout = async () => {
       await AsyncStorage.setItem("uname", "");
       await AsyncStorage.setItem("pwd", "");
-      loggedIn_ = false;
+      setSchedule([]);
+      setPlan({});
+      setHomework([]);
+      setHomework2([]);
+      setLoggedIn_(false);
       user = null;
     }
     return (
@@ -219,6 +230,14 @@ export default function App() {
   const HomeworkScreen = () => {
     return (
       <ScrollView contentContainerStyle={{ justifyContent: "center", alignContent: "center" }}>
+        <Picker
+          style={{ alignSelf: "stretch" }}
+          selectedValue={selWeek}
+          onValueChange={setSelWeek}
+        >
+          <Picker.Item label="This week" value="this" />
+          <Picker.Item label="Next week" value="next" />
+        </Picker>
         <ScheduleList data={generateHomework()} />
       </ScrollView>
     );
@@ -304,5 +323,3 @@ const styles = StyleSheet.create({
     elevation: 3,
   }
 });
-
-setInterval(() => console.log(loggedIn_), 500)
