@@ -10,6 +10,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { Picker } from "@react-native-picker/picker";
 import { createStackNavigator } from "@react-navigation/stack";
+import * as Application from "expo-application";
 
 const ACCENT_COLOR = "#88f";
 const SECONDARY_COLOR = "#888";
@@ -272,15 +273,35 @@ export default function App() {
       </ScrollView>
     );
   }
+  
+  const InfoScreen = () => {
+    return (
+      <ScrollView contentContainerStyle={{ justifyContent: "center", alignContent: "center" }}>
+        <Text style={{ fontSize: 25 }}>{Application.applicationName}</Text>
+        <Text>{Application.nativeApplicationVersion}</Text>
+        <Text>{Application.applicationId}</Text>
+        <Text>{Application.nativeBuildVersion}</Text>
+        <Text>Made by Milk_Cool with ❤️</Text>
+      </ScrollView>
+    )
+  }
 
   const OtherChooserScreen = ({ navigation }) => {
     return (
+      // TODO: make a component for it
       <ScrollView contentContainerStyle={{ justifyContent: "center", alignContent: "center" }}>
         <Pressable
           style={styles.option}
           onPress={() => navigation.navigate("Marks")}
         >
           <Text style={styles.optionText}>Marks</Text>
+          <Ionicons style={styles.optionArrow} name="chevron-forward-outline" size={22} />
+        </Pressable>
+        <Pressable
+          style={styles.option}
+          onPress={() => navigation.navigate("Info")}
+        >
+          <Text style={styles.optionText}>App info</Text>
           <Ionicons style={styles.optionArrow} name="chevron-forward-outline" size={22} />
         </Pressable>
       </ScrollView>
@@ -292,6 +313,7 @@ export default function App() {
       <Stack.Navigator>
         <Stack.Screen name="Other options" component={OtherChooserScreen} />
         <Stack.Screen name="Marks" component={MarksScreen} />
+        <Stack.Screen name="Info" component={InfoScreen} />
       </Stack.Navigator>
     );
   }
