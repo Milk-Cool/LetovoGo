@@ -13,6 +13,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import * as Application from "expo-application";
 
 const ACCENT_COLOR = "#88f";
+const RED_ACCENT_COLOR = "#f88";
 const SECONDARY_COLOR = "#888";
 const BUTTON_TEXT_COLOR = "#fff";
 
@@ -52,6 +53,7 @@ export default function App() {
   const [loggedIn_, setLoggedIn_] = useState(false);
   const [marks, setMarks] = useState([]);
   const [diploma, setDiploma] = useState({});
+  const [olympiads, setOlympiads] = useState([]);
   
   const generateTable = () => {
     let col = [];
@@ -118,7 +120,7 @@ export default function App() {
     return col;
   }
   const generateDiploma = () => {
-    if(typeof diploma.diploma_letovo_table === "undefined") return;
+    if(typeof diploma.diploma_letovo_table === "undefined") return [];
     let col = [];
     for(let i in diploma.diploma_letovo_table) {
       const I = diploma.diploma_letovo_table[i];
@@ -170,6 +172,18 @@ export default function App() {
     }
     return col;
   }
+  const generateOlympiads = () => {
+    let col = [];
+    for(let i of olympiads) {
+      col.push(
+        <Pressable onPress={() => Alert.alert(i.olimpiada.olimp_name, i.olimpiada_result + "\n" + i.subject.subject_name_eng + "\n" + i.activity_results.map(x => x.letovodiploma_criterion.diplom_level + " " + x.letovodiploma_criterion.diplom_score).join("\n"))}>
+          <Text style={{ ...styles.buttonText, fontWeight: "bold", fontSize: 25 }}>{i.olimpiada.olimp_name}</Text>
+          <Text style={styles.buttonText}>{i.olimpiada.olimp_start + " - " + i.olimpiada.olimp_end}</Text>
+        </Pressable>
+      );
+    }
+    return col;
+  }
 
   const err = (cause, error) => Alert.alert("Error: " + cause, error);
 
@@ -212,6 +226,7 @@ export default function App() {
         user.homework(new Date(+(new Date()) + 1000 * 60 * 60 * 24 * 7)).then(setHomework2).catch(e => err("Homework next week", e));
         user.marks().then(setMarks).catch(e => err("Marks", e));
         user.diploma().then(setDiploma).catch(e => err("Diploma", e));
+        user.olympiads().then(setOlympiads).catch(e => err("Olympiads", e));
         setLoggedIn_(true);
         loggingIn = false;
       } catch(_) {
@@ -257,13 +272,14 @@ export default function App() {
       setHomework2([]);
       setMarks([]);
       setDiploma({});
+      setOlympiads([]);
       setLoggedIn_(false);
       user = null;
     }
     return (
       <View style={styles.container}>
         <Pressable
-          style={styles.button}
+          style={{ ...styles.button, backgroundColor: RED_ACCENT_COLOR }}
           onPress={() => logout()}
         >
           <Text style={styles.buttonText}>Log out</Text>
@@ -340,6 +356,14 @@ export default function App() {
       </ScrollView>
     );
   }
+
+  const OlympiadsScreen = () => {
+    return (
+      <ScrollView contentContainerStyle={{ justifyContent: "center", alignContent: "center" }}>
+        <ScheduleList data={generateOlympiads()} />
+      </ScrollView>
+    )
+  }
   
   const InfoScreen = () => {
     return (
@@ -364,10 +388,10 @@ export default function App() {
       </Pressable>
     }
     return (
-      // TODO: make a component for it
       <ScrollView contentContainerStyle={{ justifyContent: "center", alignContent: "center" }}>
-        <Option screen="Marks" name="Marks" />
+        <Option screen="Groups" name="Groups" />
         <Option screen="Letovo diploma" name="Letovo diploma" />
+        <Option screen="Olympiads" name="Olympiads list" />
         <Option screen="Info" name="App info" />
       </ScrollView>
     )
@@ -377,8 +401,9 @@ export default function App() {
     return (
       <Stack.Navigator>
         <Stack.Screen name="Other options" component={OtherChooserScreen} />
-        <Stack.Screen name="Marks" component={MarksScreen} />
+        <Stack.Screen name="Groups" component={GroupsScreen} />
         <Stack.Screen name="Letovo diploma" component={DiplomaScreen} />
+        <Stack.Screen name="Olympiads" component={OlympiadsScreen} />
         <Stack.Screen name="Info" component={InfoScreen} />
       </Stack.Navigator>
     );
@@ -401,10 +426,10 @@ export default function App() {
               iconName = focused
                 ? "time"
                 : "time-outline";
-            } else if (route.name === "Groups") {
+            } else if (route.name === "Marks") {
               iconName = focused
-                ? "people"
-                : "people-outline";
+                ? "school"
+                : "school-outline";
             } else if (route.name === "Homework") {
               iconName = focused
                 ? "document"
@@ -421,7 +446,7 @@ export default function App() {
         })}>
         <Tab.Screen name={loggedIn_ ? "Log out" : "Log in"} component={loggedIn_ ? LogoutScreen : LoginScreen} />
         <Tab.Screen name="Schedule" component={ScheduleScreen} />
-        <Tab.Screen name="Groups" component={GroupsScreen} />
+        <Tab.Screen name="Marks" component={MarksScreen} />
         <Tab.Screen name="Homework" component={HomeworkScreen} />
         <Tab.Screen name="Other" component={OtherScreen} options={{ headerShown: false }} />
       </Tab.Navigator>
