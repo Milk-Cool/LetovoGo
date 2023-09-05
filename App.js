@@ -18,7 +18,6 @@ const SECONDARY_COLOR = "#888";
 const BUTTON_TEXT_COLOR = "#fff";
 
 let loggedIn = false;
-let loggingIn = false;
 
 let user = null;
 
@@ -32,6 +31,119 @@ const InputField = props => <TextInput
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+
+const text = {
+  "ru": {
+    "monday": "Понедельник",
+    "tuesday": "Вторник",
+    "wednesday": "Среда",
+    "thursday": "Четверг",
+    "friday": "Пятница",
+    "saturday": "Суббота",
+    "sunday": "Воскресенье",
+    "avg_formative": "Среднее формативов: ",
+    "avg_summative": "Среднее саммативов: ",
+    "avg_final": "Среднее итоговых: ",
+    "bronze": "Бронзовые",
+    "silver": "Серебряные",
+    "golden": "Золотые",
+    "enter_username": "Вы не ввели имя пользователя!",
+    "enter_username_2": "Введите своё школьное имя пользователя.",
+    "enter_password": "Вы не ввели пароль!",
+    "enter_password_2": "Введите свой школьный пароль.",
+    "error": "Ошибка",
+    "err_schedule": "Расписание",
+    "err_plan": "Учебный план",
+    "err_hw_this": "Д/з на эту неделю",
+    "err_hw_next": "Д/з на следующую неделю",
+    "err_marks": "Оценки",
+    "err_diploma": "Диплом",
+    "err_olympiads": "Олимпиады",
+    "login_success": "Успех!",
+    "login_success_2": "Вы успешно вошли в свой аккаунт.",
+    "login_fail": "Неверный логин/пароль!",
+    "login_fail_2": "Пожалуйста, введите правильные логин и пароль.",
+    "uname": "Имя пользователя",
+    "pwd": "Пароль",
+    "log_in": "Войти",
+    "logging_in": "Входим...",
+    "log_out": "Выйти",
+    "log_out_info": "Если вы выйдете, то ваши логин и пароль будут удалены с устройства, и вы не сможете входить автоматически.",
+    "this_week": "Эта неделя",
+    "next_week": "Следующая неделя",
+    "made_by": "Сделано Milk_Cool с ❤️",
+    "link": "Ссылка",
+    "no_link": "Ссылки нет",
+    "s_log_out": "Выход",
+    "s_log_in": "Вход",
+    "s_schedule": "Расписание",
+    "s_marks": "Оценки",
+    "s_homework": "Домашка",
+    "s_other": "Другое",
+    "s_other_options": "Другие опции",
+    "s_groups": "Группы",
+    "s_diploma": "Диплом Летово",
+    "s_olympiads": "Олимпиады",
+    "s_settings": "Настройки",
+    "s_info": "Информация",
+    "language": "Язык",
+  },
+  "en": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday",
+    "avg_formative": "Formatives average: ",
+    "avg_summative": "Summatives average: ",
+    "avg_final": "Finals average: ",
+    "bronze": "Bronze",
+    "silver": "Silver",
+    "golden": "Golden",
+    "enter_username": "You did not enter a username!",
+    "enter_username_2": "Please enter your school username.",
+    "enter_password": "You did not enter a password!",
+    "enter_password_2": "Please enter your school password.",
+    "error": "Error",
+    "err_schedule": "Schedule",
+    "err_plan": "Plan",
+    "err_hw_this": "Homework this week",
+    "err_hw_next": "Homework next week",
+    "err_marks": "Marks",
+    "err_diploma": "Diploma",
+    "err_olympiads": "Olympiads",
+    "login_success": "Success!",
+    "login_success_2": "You have successfully logged in.",
+    "login_fail": "Wrong username/password!",
+    "login_fail_2": "Please enter a valid username/password pair.",
+    "uname": "Username",
+    "pwd": "Password",
+    "log_in": "Log in",
+    "logging_in": "Logging in...",
+    "log_out": "Log out",
+    "log_out_info": "Logging out will delete your login credentials from your device and you will not be able to log in automatically.",
+    "this_week": "This week",
+    "next_week": "Next week",
+    "made_by": "Made by Milk_Cool with ❤️",
+    "link": "Link",
+    "no_link": "No link",
+    "s_log_out": "Log out",
+    "s_log_in": "Log in",
+    "s_schedule": "Schedule",
+    "s_marks": "Marks",
+    "s_homework": "Homework",
+    "s_other": "Other",
+    "s_other_options": "Other options",
+    "s_groups": "Groups",
+    "s_diploma": "Letovo Diploma",
+    "s_olympiads": "Olympiads",
+    "s_settings": "Settings",
+    "s_info": "Info",
+    "language": "Language",
+  }
+};
 
 Date.prototype.getDayMon = function(){
   return [6, 0, 1, 2, 3, 4, 5][this.getDay()];
@@ -50,10 +162,26 @@ export default function App() {
   const [plan, setPlan] = useState({});
   const [homework, setHomework] = useState([]);
   const [homework2, setHomework2] = useState([]);
-  const [loggedIn_, setLoggedIn_] = useState(false);
   const [marks, setMarks] = useState([]);
   const [diploma, setDiploma] = useState({});
   const [olympiads, setOlympiads] = useState([]);
+  const [loggedIn_, setLoggedIn_] = useState(false);
+  const [loggingIn, setLoggingIn] = useState(false);
+  const [lang, setLang] = useState("en");
+  const [clang, setClang] = useState(text["en"]);
+
+  (async () => {
+    if(await AsyncStorage.getItem("lang") === null)
+      await AsyncStorage.setItem("lang", "en");
+    setLang(await AsyncStorage.getItem("lang"));
+    setClang(text[lang]);
+  })();
+
+  const setLanguage = async language => {
+    setLang(language);
+    setClang(text[language]);
+    await AsyncStorage.setItem("lang", language);
+  }
   
   const generateTable = () => {
     let col = [];
@@ -62,7 +190,7 @@ export default function App() {
       if(i.schedules.length != 0)
         col.push(
           <View>
-            <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{"(" + i.period_start + " - " + i.period_end + ") " + i.schedules[0].group.subject.subject_name_eng + "\n"}</Text>
+            <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{"(" + i.period_start + " - " + i.period_end + ") " + { "ru": i.schedules[0].group.subject.subject_name, "en": i.schedules[0].group.subject.subject_name_eng }[lang] + "\n"}</Text>
             <Text style={styles.buttonText}>{i.schedules[0].group.group_name + " " + i.schedules[0].room.room_name + "\n"}</Text>
             <Text style={{ fontSize: 8, ...styles.buttonText }}>{`${i.period_name} (${i.period_shortname})`}</Text>
           </View>
@@ -77,8 +205,8 @@ export default function App() {
       col.push(
         <View>
           <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{i.group.group_name + "\n"}</Text>
-          <Text style={styles.buttonText}>{i.group.subject.subject_name_eng + "\n"}</Text>
-          <Text style={{ fontSize: 8, ...styles.buttonText }}>{`${i.group.group_teachers[0].teacher.teacher_surname_eng} ${i.group.group_teachers[0].teacher.teacher_name_eng} ${i.group.group_teachers[0].teacher.teacher_fath_eng}`}</Text>
+          <Text style={styles.buttonText}>{{ "ru": i.group.subject.subject_name, "en": i.group.subject.subject_name_eng }[lang] + "\n"}</Text>
+          <Text style={{ fontSize: 8, ...styles.buttonText }}>{`${{ "ru": i.group.group_teachers[0].teacher.teacher_surname, "en": i.group.group_teachers[0].teacher.teacher_surname_eng }[lang]} ${{ "ru": i.group.group_teachers[0].teacher.teacher_name, "en": i.group.group_teachers[0].teacher.teacher_name_eng }[lang]} ${{ "ru": i.group.group_teachers[0].teacher.teacher_fath, "en": i.group.group_teachers[0].teacher.teacher_fath_eng }[lang]}`}</Text>
           <TouchableHighlight onPress={() => Linking.openURL("mailto:" + i.group.group_teachers[0].teacher.teacher_mail)}><Text style={{ fontSize: 8, textDecorationLine: "underline", ...styles.buttonText }}>{`${i.group.group_teachers[0].teacher.teacher_mail}`}</Text></TouchableHighlight>
         </View>
       );
@@ -94,9 +222,9 @@ export default function App() {
         col.push(
           <View>
             <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{j.name + "\n"}</Text>
-            <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{["Monday", "Tuesday", "Wednesday", "Thursday", "Firday", "Saturday", "Sunday"][i] + "\n"}</Text>
+            <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{[clang["monday"], clang["tuesday"], clang["wednesday"], clang["thursday"], clang["friday"], clang["saturday"], clang["sunday"]][i] + "\n"}</Text>
             <Text style={styles.buttonText}>{j.task}</Text>
-            <Text>{j.link ? <TouchableHighlight onPress={() => Linking.openURL(j.link)}><Text style={{ ...styles.buttonText, textDecorationLine: "underline", fontSize: 30 }}>Link</Text></TouchableHighlight> : <Text style={styles.buttonText}>No link</Text>}</Text>
+            <Text>{j.link ? <TouchableHighlight onPress={() => Linking.openURL(j.link)}><Text style={{ ...styles.buttonText, textDecorationLine: "underline", fontSize: 30 }}>{clang["link"]}</Text></TouchableHighlight> : <Text style={styles.buttonText}>{clang["no_link"]}</Text>}</Text>
           </View>
         );
       }
@@ -108,9 +236,9 @@ export default function App() {
       if(i.formative_list.length == 0 && i.summative_list.length == 0 && i.final_mark_list == 0) continue;
       col.push(
         <View>
-          <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{"Summatives average: " + i.summative_avg_value}</Text>
-          <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{"Formatives average: " + i.formative_avg_value}</Text>
-          <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{"Finals average: " + i.result_final_mark}</Text>
+          <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{clang["avg_summative"] + i.summative_avg_value}</Text>
+          <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{clang["avg_formative"] + i.formative_avg_value}</Text>
+          <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{clang["avg_final"] + i.result_final_mark}</Text>
           { i.formative_list.map(x => <Pressable onPress={() => Alert.alert(x.lesson_thema, x.created_at)} style={styles.invertedSchedule_item}><Text style={styles.invertedButtonText}>{(x.mark_criterion ?? "F") + " " + x.mark_value}</Text></Pressable>) }
           { i.summative_list.map(x => <Pressable onPress={() => Alert.alert(x.lesson_thema, x.created_at)} style={styles.invertedSchedule_item}><Text style={styles.invertedButtonText}>{(x.mark_criterion ?? "F") + " " + x.mark_value}</Text></Pressable>) }
           { i.final_mark_list.map(x => <Pressable onPress={() => Alert.alert(x.lesson_thema, x.created_at)} style={styles.invertedSchedule_item}><Text style={styles.invertedButtonText}>{(x.mark_criterion ?? "F") + " " + x.mark_value}</Text></Pressable>) }
@@ -137,7 +265,7 @@ export default function App() {
           {
             bronze.score
             ? <View>
-              <Text style={{ fontWeight: "bold", ...styles.buttonText }}>Bronze: {bronze.score}</Text>
+              <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{clang["bronze"]}: {bronze.score}</Text>
               { bronze.received_for.activities.map(mapF1) }
               { bronze.received_for.courses.map(mapF2) }
               { bronze.received_for.olimpiads.map(mapF3) }
@@ -148,7 +276,7 @@ export default function App() {
           {
             silver.score
             ? <View>
-              <Text style={{ fontWeight: "bold", ...styles.buttonText }}>Silver: {silver.score}</Text>
+              <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{clang["silver"]}: {silver.score}</Text>
               { silver.received_for.activities.map(mapF1) }
               { silver.received_for.courses.map(mapF2) }
               { silver.received_for.olimpiads.map(mapF3) }
@@ -159,10 +287,10 @@ export default function App() {
           {
             golden.score
             ? <View>
-              <Text style={{ fontWeight: "bold", ...styles.buttonText }}>Golden: {golden.score}</Text>
+              <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{clang["golden"]}: {golden.score}</Text>
               { golden.received_for.activities.map(mapF1) }
               { golden.received_for.courses.map(mapF2) }
-              { golden.received_for.olimpiads.map(mapF) }
+              { golden.received_for.olimpiads.map(mapF3) }
               { /*golden.received_for.projects.map(mapF)*/ }
             </View>
             : ""
@@ -176,7 +304,7 @@ export default function App() {
     let col = [];
     for(let i of olympiads) {
       col.push(
-        <Pressable onPress={() => Alert.alert(i.olimpiada.olimp_name, i.olimpiada_result + "\n" + i.subject.subject_name_eng + "\n" + i.activity_results.map(x => x.letovodiploma_criterion.diplom_level + " " + x.letovodiploma_criterion.diplom_score).join("\n"))}>
+        <Pressable onPress={() => Alert.alert(i.olimpiada.olimp_name, i.olimpiada_result + "\n" + { "ru": i.subject.subject_name, "en": i.subject.subject_name_eng }[lang] + "\n" + i.activity_results.map(x => x.letovodiploma_criterion.diplom_level + " " + x.letovodiploma_criterion.diplom_score).join("\n"))}>
           <Text style={{ ...styles.buttonText, fontWeight: "bold", fontSize: 25 }}>{i.olimpiada.olimp_name}</Text>
           <Text style={styles.buttonText}>{i.olimpiada.olimp_start + " - " + i.olimpiada.olimp_end}</Text>
         </Pressable>
@@ -185,7 +313,7 @@ export default function App() {
     return col;
   }
 
-  const err = (cause, error) => Alert.alert("Error: " + cause, error);
+  const err = (cause, error) => Alert.alert(clang[error] + ": " + cause, error);
 
   const LoginScreen = props => {
     const [uname, setUname] = useState("");
@@ -205,33 +333,34 @@ export default function App() {
       return loadedUname !== null && loadedPwd !== null && loadedUname !== "" && loadedPwd !== "";
     }
     const login = async (silent) => {
+      setPwd(pwd.replace("@student.letovo.ru", "").replace("@letovo.ru", ""));
       if(await checkLoginPassword() && uname == "" && pwd == "") {
         user = new Letovo(...(await loadLoginPassword()));
       } else {
         if(uname == "")
-          return Alert.alert("You did not enter a username!", "Please enter your school username.");
+          return Alert.alert(clang["enter_username"], clang["enter_username_2"]);
         if(pwd == "")
-          return Alert.alert("You did not enter a password!", "Please enter your school password.");
+          return Alert.alert(clang["enter_password"], clang["enter_password_2"]);
         await saveLoginPassword();
         user = new Letovo(uname, pwd);
       }
-      loggingIn = true;
+      setLoggingIn(true);
       try {
         await user.login();
         await user.loginOld();
-        if(!silent) Alert.alert("Success!", "You have successfully logged in.");
-        user.weekSchedule().then(setSchedule).catch(e => err("Schedule", e));
-        user.plan().then(setPlan).catch(e => err("Plan", e));
-        user.homework().then(setHomework).catch(e => err("Homework this week", e));
-        user.homework(new Date(+(new Date()) + 1000 * 60 * 60 * 24 * 7)).then(setHomework2).catch(e => err("Homework next week", e));
-        user.marks().then(setMarks).catch(e => err("Marks", e));
-        user.diploma().then(setDiploma).catch(e => err("Diploma", e));
-        user.olympiads().then(setOlympiads).catch(e => err("Olympiads", e));
+        if(!silent) Alert.alert(clang["login_success"], clang["login_success_2"]);
+        user.weekSchedule().then(setSchedule).catch(e => err(clang["err_schedule"], e));
+        user.plan().then(setPlan).catch(e => err(clang["err_plan"], e));
+        user.homework().then(setHomework).catch(e => err(clang["err_hw_this"], e));
+        user.homework(new Date(+(new Date()) + 1000 * 60 * 60 * 24 * 7)).then(setHomework2).catch(e => err(clang["err_hw_next"], e));
+        user.marks().then(setMarks).catch(e => err(clang["err_marks"], e));
+        user.diploma().then(setDiploma).catch(e => err(clang["err_diploma"], e));
+        user.olympiads().then(setOlympiads).catch(e => err(clang["err_olympiads"], e));
         setLoggedIn_(true);
-        loggingIn = false;
+        setLoggingIn(false);
       } catch(_) {
-        Alert.alert("Wrong username/password!", "Please enter a valid username/password pair.");
-        loggingIn = false;
+        Alert.alert(clang["login_fail"], clang["login_fail_2"]);
+        setLoggingIn(false);
       }
     }
     (async () => {
@@ -243,12 +372,12 @@ export default function App() {
     return (
       <View style={styles.container}>
         <InputField
-          placeholder="Username (without @student...)"
+          placeholder={clang["uname"]}
           onChangeText={setUname}
           autoComplete="username"
         />
         <InputField
-          placeholder="Password"
+          placeholder={clang["pwd"]}
           onChangeText={setPwd}
           isPassword={true}
           autoComplete="current-password"
@@ -257,7 +386,7 @@ export default function App() {
           style={styles.button}
           onPress={() => loggingIn ? null : login(false)}
         >
-          <Text style={styles.buttonText}>{loggingIn ? "Logging in..." : "Log in"}</Text>
+          <Text style={styles.buttonText}>{loggingIn ? clang["logging_in"] : clang["log_in"]}</Text>
         </Pressable>
       </View>
     )
@@ -282,9 +411,9 @@ export default function App() {
           style={{ ...styles.button, backgroundColor: RED_ACCENT_COLOR }}
           onPress={() => logout()}
         >
-          <Text style={styles.buttonText}>Log out</Text>
+          <Text style={styles.buttonText}>{clang["log_out"]}</Text>
         </Pressable>
-        <Text style={{ maxWidth: 300, textAlign: "center" }}>Logging out will delete your login credentials from your device and you will not be able to log in automatically.</Text>
+        <Text style={{ maxWidth: 300, textAlign: "center" }}>{clang["log_out_info"]}</Text>
       </View>
     );
   }
@@ -304,13 +433,13 @@ export default function App() {
           selectedValue={selDay}
           onValueChange={setSelDay}
         >
-          <Picker.Item label="Monday" value={days[0]} />
-          <Picker.Item label="Tuesday" value={days[1]} />
-          <Picker.Item label="Wednesday" value={days[2]} />
-          <Picker.Item label="Thursday" value={days[3]} />
-          <Picker.Item label="Friday" value={days[4]} />
-          <Picker.Item label="Saturday" value={days[5]} />
-          <Picker.Item label="Sunday" value={days[6]} />
+          <Picker.Item label={clang["monday"]} value={days[0]} />
+          <Picker.Item label={clang["tuesday"]} value={days[1]} />
+          <Picker.Item label={clang["wednesday"]} value={days[2]} />
+          <Picker.Item label={clang["thursday"]} value={days[3]} />
+          <Picker.Item label={clang["friday"]} value={days[4]} />
+          <Picker.Item label={clang["saturday"]} value={days[5]} />
+          <Picker.Item label={clang["sunday"]} value={days[6]} />
         </Picker>
         <ScheduleList data={generateTable()} />
       </ScrollView>
@@ -333,8 +462,8 @@ export default function App() {
           selectedValue={selWeek}
           onValueChange={setSelWeek}
         >
-          <Picker.Item label="This week" value="this" />
-          <Picker.Item label="Next week" value="next" />
+          <Picker.Item label={clang["this_week"]} value="this" />
+          <Picker.Item label={clang["next_week"]} value="next" />
         </Picker>
         <ScheduleList data={generateHomework()} />
       </ScrollView>
@@ -372,7 +501,7 @@ export default function App() {
         <Text>{Application.nativeApplicationVersion}</Text>
         <Text>{Application.applicationId}</Text>
         <Text>{Application.nativeBuildVersion}</Text>
-        <Text>Made by Milk_Cool with ❤️</Text>
+        <Text>{clang["made_by"]}</Text>
       </ScrollView>
     )
   }
@@ -389,10 +518,11 @@ export default function App() {
     }
     return (
       <ScrollView contentContainerStyle={{ justifyContent: "center", alignContent: "center" }}>
-        <Option screen="Groups" name="Groups" />
-        <Option screen="Letovo diploma" name="Letovo diploma" />
-        <Option screen="Olympiads" name="Olympiads list" />
-        <Option screen="Info" name="App info" />
+        <Option screen={clang["s_groups"]} name={clang["s_groups"]} />
+        <Option screen={clang["s_diploma"]} name={clang["s_diploma"]} />
+        <Option screen={clang["s_olympiads"]} name={clang["s_olympiads"]} />
+        <Option screen={clang["s_settings"]} name={clang["s_settings"]} />
+        <Option screen={clang["s_info"]} name={clang["s_info"]} />
       </ScrollView>
     )
   }
@@ -400,13 +530,30 @@ export default function App() {
   const OtherScreen = () => {
     return (
       <Stack.Navigator>
-        <Stack.Screen name="Other options" component={OtherChooserScreen} />
-        <Stack.Screen name="Groups" component={GroupsScreen} />
-        <Stack.Screen name="Letovo diploma" component={DiplomaScreen} />
-        <Stack.Screen name="Olympiads" component={OlympiadsScreen} />
-        <Stack.Screen name="Info" component={InfoScreen} />
+        <Stack.Screen name={clang["s_other_options"]} component={OtherChooserScreen} />
+        <Stack.Screen name={clang["s_groups"]} component={GroupsScreen} />
+        <Stack.Screen name={clang["s_diploma"]} component={DiplomaScreen} />
+        <Stack.Screen name={clang["s_olympiads"]} component={OlympiadsScreen} />
+        <Stack.Screen name={clang["s_settings"]} component={SettingsScreen} />
+        <Stack.Screen name={clang["s_info"]} component={InfoScreen} />
       </Stack.Navigator>
     );
+  }
+
+  const SettingsScreen = () => {
+    return (
+      <View style={styles.container}>
+        <Text>{clang["language"]}</Text>
+        <Picker
+          style={{ width: 250 }}
+          selectedValue={lang}
+          onValueChange={setLanguage}
+        >
+          <Picker.Item label="Русский" value="ru" />
+          <Picker.Item label="English" value="en" />
+        </Picker>
+      </View>
+    )
   }
 
   return (
@@ -414,27 +561,27 @@ export default function App() {
       <Tab.Navigator screenOptions={({ route }) => ({
           tabBarIcon: ({ focused, color, size }) => {
             let iconName;
-            if (route.name === "Log in") {
+            if (route.name === clang["s_log_in"]) {
               iconName = focused
                 ? "log-in"
                 : "log-in-outline";
-            } else if (route.name === "Log out") {
+            } else if (route.name === clang["s_log_out"]) {
               iconName = focused
                 ? "log-out"
                 : "log-out-outline";
-            } else if (route.name === "Schedule") {
+            } else if (route.name === clang["s_schedule"]) {
               iconName = focused
                 ? "time"
                 : "time-outline";
-            } else if (route.name === "Marks") {
+            } else if (route.name === clang["s_marks"]) {
               iconName = focused
                 ? "school"
                 : "school-outline";
-            } else if (route.name === "Homework") {
+            } else if (route.name === clang["s_homework"]) {
               iconName = focused
                 ? "document"
                 : "document-outline";
-            } else if (route.name === "Other") {
+            } else if (route.name === clang["s_other"]) {
               iconName = focused
                 ? "ellipsis-horizontal"
                 : "ellipsis-horizontal-outline";
@@ -444,11 +591,11 @@ export default function App() {
           tabBarActiveTintColor: ACCENT_COLOR,
           tabBarInactiveTintColor: SECONDARY_COLOR,
         })}>
-        <Tab.Screen name={loggedIn_ ? "Log out" : "Log in"} component={loggedIn_ ? LogoutScreen : LoginScreen} />
-        <Tab.Screen name="Schedule" component={ScheduleScreen} />
-        <Tab.Screen name="Marks" component={MarksScreen} />
-        <Tab.Screen name="Homework" component={HomeworkScreen} />
-        <Tab.Screen name="Other" component={OtherScreen} options={{ headerShown: false }} />
+        <Tab.Screen name={loggedIn_ ? clang["s_log_out"] : clang["s_log_in"]} component={loggedIn_ ? LogoutScreen : LoginScreen} />
+        <Tab.Screen name={clang["s_schedule"]} component={ScheduleScreen} />
+        <Tab.Screen name={clang["s_marks"]} component={MarksScreen} />
+        <Tab.Screen name={clang["s_homework"]} component={HomeworkScreen} />
+        <Tab.Screen name={clang["s_other"]} component={OtherScreen} options={{ headerShown: false }} />
       </Tab.Navigator>
     </NavigationContainer>
   );
