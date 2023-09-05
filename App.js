@@ -51,6 +51,7 @@ export default function App() {
   const [homework2, setHomework2] = useState([]);
   const [loggedIn_, setLoggedIn_] = useState(false);
   const [marks, setMarks] = useState([]);
+  const [diploma, setDiploma] = useState({});
   
   const generateTable = () => {
     let col = [];
@@ -116,6 +117,59 @@ export default function App() {
     }
     return col;
   }
+  const generateDiploma = () => {
+    if(typeof diploma.diploma_letovo_table === "undefined") return;
+    let col = [];
+    for(let i in diploma.diploma_letovo_table) {
+      const I = diploma.diploma_letovo_table[i];
+      const bronze = I["Бронзовые"];
+      const silver = I["Серебряные"];
+      const golden = I["Золотые"];
+      if(bronze.score + silver.score + golden.score == 0) continue;
+      const mapF1 = x => <Pressable onPress={() => Alert.alert(x.activity.activity_name, x.activity.activity_end)} style={{ ...styles.invertedSchedule_item, "alignSelf": "stretch" }}><Text style={styles.invertedButtonText}>{x.activity.activity_name}</Text></Pressable>;
+      const mapF2 = x => <Pressable onPress={() => Alert.alert(x.group_name, x.year.year_start + "-" + x.year.year_end)} style={{ ...styles.invertedSchedule_item, "alignSelf": "stretch" }}><Text style={styles.invertedButtonText}>{x.group_name}</Text></Pressable>;
+      const mapF3 = x => <Pressable onPress={() => Alert.alert(x.olimpiada.olimp_name, x.olimpiada_result + " " + x.olimpiada.year.year_start + "-" + x.olimpiada.year.year_end)} style={{ ...styles.invertedSchedule_item, "alignSelf": "stretch" }}><Text style={styles.invertedButtonText}>{x.olimpiada.olimp_name}</Text></Pressable>;
+      col.push(
+        <View>
+          <Text style={{ ...styles.buttonText, fontSize: 25, fontWeight: "bold" }}>{i}</Text>
+          {
+            bronze.score
+            ? <View>
+              <Text style={{ fontWeight: "bold", ...styles.buttonText }}>Bronze: {bronze.score}</Text>
+              { bronze.received_for.activities.map(mapF1) }
+              { bronze.received_for.courses.map(mapF2) }
+              { bronze.received_for.olimpiads.map(mapF3) }
+              { /*bronze.received_for.projects.map(mapF)*/ }
+            </View>
+            : ""
+          }
+          {
+            silver.score
+            ? <View>
+              <Text style={{ fontWeight: "bold", ...styles.buttonText }}>Silver: {silver.score}</Text>
+              { silver.received_for.activities.map(mapF1) }
+              { silver.received_for.courses.map(mapF2) }
+              { silver.received_for.olimpiads.map(mapF3) }
+              { /*silver.received_for.projects.map(mapF)*/ }
+            </View>
+            : ""
+          }
+          {
+            golden.score
+            ? <View>
+              <Text style={{ fontWeight: "bold", ...styles.buttonText }}>Golden: {golden.score}</Text>
+              { golden.received_for.activities.map(mapF1) }
+              { golden.received_for.courses.map(mapF2) }
+              { golden.received_for.olimpiads.map(mapF) }
+              { /*golden.received_for.projects.map(mapF)*/ }
+            </View>
+            : ""
+          }
+        </View>
+      );
+    }
+    return col;
+  }
 
   const err = (cause, error) => Alert.alert("Error: " + cause, error);
 
@@ -157,6 +211,7 @@ export default function App() {
         user.homework().then(setHomework).catch(e => err("Homework this week", e));
         user.homework(new Date(+(new Date()) + 1000 * 60 * 60 * 24 * 7)).then(setHomework2).catch(e => err("Homework next week", e));
         user.marks().then(setMarks).catch(e => err("Marks", e));
+        user.diploma().then(setDiploma).catch(e => err("Diploma", e));
         setLoggedIn_(true);
         loggingIn = false;
       } catch(_) {
@@ -200,6 +255,8 @@ export default function App() {
       setPlan({});
       setHomework([]);
       setHomework2([]);
+      setMarks([]);
+      setDiploma({});
       setLoggedIn_(false);
       user = null;
     }
@@ -276,6 +333,14 @@ export default function App() {
     );
   }
   
+  const DiplomaScreen = () => {
+    return (
+      <ScrollView contentContainerStyle={{ justifyContent: "center", alignContent: "center" }}>
+        <ScheduleList data={generateDiploma()} />
+      </ScrollView>
+    );
+  }
+  
   const InfoScreen = () => {
     return (
       <ScrollView contentContainerStyle={{ justifyContent: "center", alignContent: "center" }}>
@@ -302,6 +367,7 @@ export default function App() {
       // TODO: make a component for it
       <ScrollView contentContainerStyle={{ justifyContent: "center", alignContent: "center" }}>
         <Option screen="Marks" name="Marks" />
+        <Option screen="Letovo diploma" name="Letovo diploma" />
         <Option screen="Info" name="App info" />
       </ScrollView>
     )
@@ -312,6 +378,7 @@ export default function App() {
       <Stack.Navigator>
         <Stack.Screen name="Other options" component={OtherChooserScreen} />
         <Stack.Screen name="Marks" component={MarksScreen} />
+        <Stack.Screen name="Letovo diploma" component={DiplomaScreen} />
         <Stack.Screen name="Info" component={InfoScreen} />
       </Stack.Navigator>
     );
