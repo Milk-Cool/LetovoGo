@@ -117,6 +117,8 @@ export default function App() {
     return col;
   }
 
+  const err = (cause, error) => Alert.alert("Error: " + cause, error);
+
   const LoginScreen = props => {
     const [uname, setUname] = useState("");
     const [pwd, setPwd] = useState("");
@@ -150,11 +152,11 @@ export default function App() {
         await user.login();
         await user.loginOld();
         if(!silent) Alert.alert("Success!", "You have successfully logged in.");
-        user.weekSchedule().then(setSchedule);
-        user.plan().then(setPlan);
-        user.homework().then(setHomework);
-        user.homework(new Date(+(new Date()) + 1000 * 60 * 60 * 24 * 7)).then(setHomework2);
-        user.marks().then(setMarks);
+        user.weekSchedule().then(setSchedule).catch(e => err("Schedule", e));
+        user.plan().then(setPlan).catch(e => err("Plan", e));
+        user.homework().then(setHomework).catch(e => err("Homework this week", e));
+        user.homework(new Date(+(new Date()) + 1000 * 60 * 60 * 24 * 7)).then(setHomework2).catch(e => err("Homework next week", e));
+        user.marks().then(setMarks).catch(e => err("Marks", e));
         setLoggedIn_(true);
         loggingIn = false;
       } catch(_) {
@@ -287,23 +289,20 @@ export default function App() {
   }
 
   const OtherChooserScreen = ({ navigation }) => {
+    const Option = params => {
+      return <Pressable
+        style={styles.option}
+        onPress={() => navigation.navigate(params.screen)}
+      >
+        <Text style={styles.optionText}>{params.name}</Text>
+        <Ionicons style={styles.optionArrow} name="chevron-forward-outline" size={22} />
+      </Pressable>
+    }
     return (
       // TODO: make a component for it
       <ScrollView contentContainerStyle={{ justifyContent: "center", alignContent: "center" }}>
-        <Pressable
-          style={styles.option}
-          onPress={() => navigation.navigate("Marks")}
-        >
-          <Text style={styles.optionText}>Marks</Text>
-          <Ionicons style={styles.optionArrow} name="chevron-forward-outline" size={22} />
-        </Pressable>
-        <Pressable
-          style={styles.option}
-          onPress={() => navigation.navigate("Info")}
-        >
-          <Text style={styles.optionText}>App info</Text>
-          <Ionicons style={styles.optionArrow} name="chevron-forward-outline" size={22} />
-        </Pressable>
+        <Option screen="Marks" name="Marks" />
+        <Option screen="Info" name="App info" />
       </ScrollView>
     )
   }
