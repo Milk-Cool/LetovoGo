@@ -239,9 +239,9 @@ export default function App() {
           <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{clang["avg_summative"] + i.summative_avg_value}</Text>
           <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{clang["avg_formative"] + i.formative_avg_value}</Text>
           <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{clang["avg_final"] + i.result_final_mark}</Text>
-          { i.formative_list.map(x => <Pressable onPress={() => Alert.alert(x.lesson_thema, x.created_at)} style={styles.invertedSchedule_item}><Text style={styles.invertedButtonText}>{(x.mark_criterion ?? "F") + " " + x.mark_value}</Text></Pressable>) }
-          { i.summative_list.map(x => <Pressable onPress={() => Alert.alert(x.lesson_thema, x.created_at)} style={styles.invertedSchedule_item}><Text style={styles.invertedButtonText}>{(x.mark_criterion ?? "F") + " " + x.mark_value}</Text></Pressable>) }
-          { i.final_mark_list.map(x => <Pressable onPress={() => Alert.alert(x.lesson_thema, x.created_at)} style={styles.invertedSchedule_item}><Text style={styles.invertedButtonText}>{(x.mark_criterion ?? "F") + " " + x.mark_value}</Text></Pressable>) }
+          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>{ i.formative_list.map(x => <Pressable onPress={() => Alert.alert(x.lesson_thema, x.created_at)} style={styles.invertedSchedule_item}><Text style={styles.invertedButtonText}>{(x.mark_criterion ?? "F") + " " + x.mark_value}</Text></Pressable>) }</View>
+          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>{ i.summative_list.map(x => <Pressable onPress={() => Alert.alert(x.lesson_thema, x.created_at)} style={styles.invertedSchedule_item}><Text style={styles.invertedButtonText}>{(x.mark_criterion ?? "F") + " " + x.mark_value}</Text></Pressable>) }</View>
+          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>{ i.final_mark_list.map(x => <Pressable onPress={() => Alert.alert(x.lesson_thema, x.created_at)} style={styles.invertedSchedule_item}><Text style={styles.invertedButtonText}>{(x.mark_criterion ?? "F") + " " + x.mark_value}</Text></Pressable>) }</View>
         </View>
       );
     }
