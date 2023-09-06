@@ -57,7 +57,11 @@ const text = {
     "err_hw_this": "Д/з на эту неделю",
     "err_hw_next": "Д/з на следующую неделю",
     "err_marks": "Оценки",
-    "err_diploma": "Диплом",
+    "err_diploma_sport": "Диплом: Спорт и здоровье",
+    "err_diploma_creativity": "Диплом: Творчество и изобретательство",
+    "err_diploma_responsibility": "Диплом: Социальная и гражданская ответственность",
+    "err_diploma_science": "Диплом: Наука и познание",
+    "err_diploma_leadership": "Диплом: Лидерство и взаимодействие",
     "err_olympiads": "Олимпиады",
     "login_success": "Успех!",
     "login_success_2": "Вы успешно вошли в свой аккаунт.",
@@ -87,6 +91,11 @@ const text = {
     "s_settings": "Настройки",
     "s_info": "Информация",
     "language": "Язык",
+    "diploma_sport": "Спорт и здоровье",
+    "diploma_creativity": "Творчество и изобретательство",
+    "diploma_responsibility": "Социальная и гражданская ответственность",
+    "diploma_science": "Наука и познание",
+    "diploma_leadership": "Лидерство и взаимодействие",
   },
   "en": {
     "monday": "Monday",
@@ -112,7 +121,11 @@ const text = {
     "err_hw_this": "Homework this week",
     "err_hw_next": "Homework next week",
     "err_marks": "Marks",
-    "err_diploma": "Diploma",
+    "err_diploma_sport": "Diploma: Sport",
+    "err_diploma_creativity": "Diploma: Creativity",
+    "err_diploma_responsibility": "Diploma: Responsibility",
+    "err_diploma_science": "Diploma: Science",
+    "err_diploma_leadership": "Diploma: Leadership",
     "err_olympiads": "Olympiads",
     "login_success": "Success!",
     "login_success_2": "You have successfully logged in.",
@@ -142,6 +155,11 @@ const text = {
     "s_settings": "Settings",
     "s_info": "Info",
     "language": "Language",
+    "diploma_sport": "Sport",
+    "diploma_creativity": "Creativity",
+    "diploma_responsibility": "Responsibility",
+    "diploma_science": "Science",
+    "diploma_leadership": "Leadership",
   }
 };
 
@@ -163,7 +181,11 @@ export default function App() {
   const [homework, setHomework] = useState([]);
   const [homework2, setHomework2] = useState([]);
   const [marks, setMarks] = useState([]);
-  const [diploma, setDiploma] = useState({});
+  const [diplomaSport, setDiplomaSport] = useState([]);
+  const [diplomaCreativity, setDiplomaCreativity] = useState([]);
+  const [diplomaResponsibility, setDiplomaResponsibility] = useState([]);
+  const [diplomaScience, setDiplomaScience] = useState([]);
+  const [diplomaLeadership, setDiplomaLeadership] = useState([]);
   const [olympiads, setOlympiads] = useState([]);
   const [loggedIn_, setLoggedIn_] = useState(false);
   const [loggingIn, setLoggingIn] = useState(false);
@@ -249,53 +271,28 @@ export default function App() {
     return col;
   }
   const generateDiploma = () => {
-    if(typeof diploma.diploma_letovo_table === "undefined") return [];
+    const mapF1 = x => <Pressable onPress={() => Alert.alert(x.student_activity.activity.activity_name ?? x.letovodiploma_criterion.diplom_criterion, x.student_activity.activity_time)} style={{ ...styles.invertedSchedule_item, "alignSelf": "stretch" }}><View style={{ flexDirection: "row", flex: 1 }}><Text style={{ flex: 1, ...styles.invertedButtonText }}>{x.student_activity.activity.activity_name ?? x.letovodiploma_criterion.diplom_criterion}</Text><Text style={{ flexShrink: 1, alignContent: "flex-end", ...styles.invertedButtonText }}>{x.result_score}</Text></View></Pressable>;
+    const mapF2 = x => <Pressable onPress={() => Alert.alert(x.student_course.group.group_name, x.student_course.group.year.year_start + "-" + x.student_course.group.year.year_end)} style={{ ...styles.invertedSchedule_item, "alignSelf": "stretch" }}><View style={{ flexDirection: "row", flex: 1 }}><Text style={{ flex: 1, ...styles.invertedButtonText }}>{x.student_course.group.group_name}</Text><Text style={{ flexShrink: 1, alignContent: "flex-end", ...styles.invertedButtonText }}>{x.result_score}</Text></View></Pressable>;
+    const mapF3 = x => <Pressable onPress={() => Alert.alert(x.student_olimpiada.olimpiada.olimp_name, x.student_olimpiada.olimpiada_result + " " + x.student_olimpiada.olimpiada.year.year_start + "-" + x.student_olimpiada.olimpiada.year.year_end)} style={{ ...styles.invertedSchedule_item, "alignSelf": "stretch" }}><View style={{ flexDirection: "row", flex: 1 }}><Text style={{ flex: 1, ...styles.invertedButtonText }}>{x.student_olimpiada.olimpiada.olimp_name}</Text><Text style={{ flexShrink: 1, alignContent: "flex-end", ...styles.invertedButtonText }}>{x.result_score}</Text></View></Pressable>;
+    const mapF4 = x => <View></View>;
     let col = [];
-    for(let i in diploma.diploma_letovo_table) {
-      const I = diploma.diploma_letovo_table[i];
-      const bronze = I["Бронзовые"];
-      const silver = I["Серебряные"];
-      const golden = I["Золотые"];
-      if(bronze.score + silver.score + golden.score == 0) continue;
-      const mapF1 = x => <Pressable onPress={() => Alert.alert(x.activity.activity_name, x.activity.activity_end)} style={{ ...styles.invertedSchedule_item, "alignSelf": "stretch" }}><Text style={styles.invertedButtonText}>{x.activity.activity_name}</Text></Pressable>;
-      const mapF2 = x => <Pressable onPress={() => Alert.alert(x.group_name, x.year.year_start + "-" + x.year.year_end)} style={{ ...styles.invertedSchedule_item, "alignSelf": "stretch" }}><Text style={styles.invertedButtonText}>{x.group_name}</Text></Pressable>;
-      const mapF3 = x => <Pressable onPress={() => Alert.alert(x.olimpiada.olimp_name, x.olimpiada_result + " " + x.olimpiada.year.year_start + "-" + x.olimpiada.year.year_end)} style={{ ...styles.invertedSchedule_item, "alignSelf": "stretch" }}><Text style={styles.invertedButtonText}>{x.olimpiada.olimp_name}</Text></Pressable>;
+    for(let i in [0, 1, 2, 3, 4]) {
+      const I = [diplomaSport, diplomaCreativity, diplomaResponsibility, diplomaScience, diplomaLeadership][i];
       col.push(
         <View>
-          <Text style={{ ...styles.buttonText, fontSize: 25, fontWeight: "bold" }}>{i}</Text>
-          {
-            bronze.score
-            ? <View>
-              <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{clang["bronze"]}: {bronze.score}</Text>
-              { bronze.received_for.activities.map(mapF1) }
-              { bronze.received_for.courses.map(mapF2) }
-              { bronze.received_for.olimpiads.map(mapF3) }
-              { /*bronze.received_for.projects.map(mapF)*/ }
-            </View>
-            : ""
-          }
-          {
-            silver.score
-            ? <View>
-              <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{clang["silver"]}: {silver.score}</Text>
-              { silver.received_for.activities.map(mapF1) }
-              { silver.received_for.courses.map(mapF2) }
-              { silver.received_for.olimpiads.map(mapF3) }
-              { /*silver.received_for.projects.map(mapF)*/ }
-            </View>
-            : ""
-          }
-          {
-            golden.score
-            ? <View>
-              <Text style={{ fontWeight: "bold", ...styles.buttonText }}>{clang["golden"]}: {golden.score}</Text>
-              { golden.received_for.activities.map(mapF1) }
-              { golden.received_for.courses.map(mapF2) }
-              { golden.received_for.olimpiads.map(mapF3) }
-              { /*golden.received_for.projects.map(mapF)*/ }
-            </View>
-            : ""
-          }
+          <Text style={{ ...styles.buttonText, fontSize: 25, fontWeight: "bold" }}>{clang["diploma_" + ["sport", "creativity", "responsibility", "science", "leadership"][i]]}</Text>
+          {I.map(x => {
+            switch(x.result_type) {
+              case "activity":
+                return mapF1(x);
+              case "course":
+                return mapF2(x);
+              case "olimp":
+                return mapF3(x);
+              case "project":
+                return mapF4(x);
+            }
+          })}
         </View>
       );
     }
@@ -355,7 +352,11 @@ export default function App() {
         user.homework().then(setHomework).catch(e => err(clang["err_hw_this"], e));
         user.homework(new Date(+(new Date()) + 1000 * 60 * 60 * 24 * 7)).then(setHomework2).catch(e => err(clang["err_hw_next"], e));
         user.marks().then(setMarks).catch(e => err(clang["err_marks"], e));
-        user.diploma().then(setDiploma).catch(e => err(clang["err_diploma"], e));
+        user.diploma(1).then(setDiplomaSport).catch(e => err(clang["err_diploma_sport"], e));
+        user.diploma(2).then(setDiplomaCreativity).catch(e => err(clang["err_diploma_creativity"], e));
+        user.diploma(3).then(setDiplomaResponsibility).catch(e => err(clang["err_diploma_responsibility"], e));
+        user.diploma(4).then(setDiplomaScience).catch(e => err(clang["err_diploma_science"], e));
+        user.diploma(5).then(setDiplomaLeadership).catch(e => err(clang["err_diploma_leadership"], e));
         user.olympiads().then(setOlympiads).catch(e => err(clang["err_olympiads"], e));
         setLoggedIn_(true);
         setLoggingIn(false);
@@ -402,6 +403,11 @@ export default function App() {
       setHomework2([]);
       setMarks([]);
       setDiploma({});
+      setDiplomaSport([]);
+      setDiplomaCreativity([]);
+      setDiplomaResponsibility([]);
+      setDiplomaScience([]);
+      setDiplomaLeadership([]);
       setOlympiads([]);
       setLoggedIn_(false);
       user = null;
