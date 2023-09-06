@@ -234,7 +234,6 @@ export default function App() {
     let col = [];
     for(let i of marks) {
       if(i.formative_list.length == 0 && i.summative_list.length == 0 && i.final_mark_list == 0) continue;
-      console.log(i)
       col.push(
         <View>
           <Text style={{ fontSize: 25, ...styles.buttonText }}>{{ "ru": i.group.subject.subject_name, "en": i.group.subject.subject_name_eng }[lang]}</Text>
