@@ -1,9 +1,6 @@
 {
   "expo": {
     "name": "LetovoGo",
-    "plugins": [
-      "@notifee/react-native"
-    ],
     "slug": "LetovoGo",
     "version": "1.0.8",
     "orientation": "portrait",
