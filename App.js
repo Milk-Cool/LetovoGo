@@ -403,7 +403,6 @@ export default function App() {
       setHomework([]);
       setHomework2([]);
       setMarks([]);
-      setDiploma({});
       setDiplomaSport([]);
       setDiplomaCreativity([]);
       setDiplomaResponsibility([]);
