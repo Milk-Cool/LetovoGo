@@ -1,0 +1,1 @@
+To run this project, you will need to [download google-services.json to the root directory](https://support.google.com/firebase/answer/7015592?hl=en#zippy=%2Cin-this-article) so that you can recieve notifications.

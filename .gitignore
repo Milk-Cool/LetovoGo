@@ -37,3 +37,6 @@ yarn-error.*
 
 # Builds
 build-*
+
+# Google services
+google-services.json

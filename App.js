@@ -1,8 +1,10 @@
 import "react-native-gesture-handler";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { StyleSheet, Text, View,
   TextInput, Pressable, Alert, ScrollView,
-  TouchableHighlight, Linking } from "react-native";
+  TouchableHighlight, Linking, Platform,
+  Switch, 
+  Button} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Letovo from "letovo-api";
 import { Link, NavigationContainer } from "@react-navigation/native";
@@ -11,11 +13,23 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { Picker } from "@react-native-picker/picker";
 import { createStackNavigator } from "@react-navigation/stack";
 import * as Application from "expo-application";
+import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  })
+});
 
 const ACCENT_COLOR = "#88f";
 const RED_ACCENT_COLOR = "#f88";
 const SECONDARY_COLOR = "#888";
 const BUTTON_TEXT_COLOR = "#fff";
+const NOTIFICATION_COLOR = "#8888ff";
 
 let loggedIn = false;
 
@@ -72,7 +86,7 @@ const text = {
     "log_in": "Войти",
     "logging_in": "Входим...",
     "log_out": "Выйти",
-    "log_out_info": "Если вы выйдете, то ваши логин и пароль будут удалены с устройства, и вы не сможете входить автоматически.",
+    "log_out_info": "Если вы выйдете, то ваши логин и пароль будут удалены с устройства, и вы не сможете входить автоматически. Также вы не сможете получать уведомления.",
     "this_week": "Эта неделя",
     "next_week": "Следующая неделя",
     "made_by": "Сделано Milk_Cool с ❤️",
@@ -96,6 +110,11 @@ const text = {
     "diploma_responsibility": "Социальная и гражданская ответственность",
     "diploma_science": "Наука и познание",
     "diploma_leadership": "Лидерство и взаимодействие",
+    "notification_error_physical": "Нужно использовать настоящее устройство, чтобы получать уведомления.",
+    "notification_error_token": "Не получилось получить токен для уведомлений!",
+    "notification": "Уведомления",
+    "notification_disable": "Выключить уведомления",
+    "notification_enable": "Включить уведомления",
   },
   "en": {
     "monday": "Monday",
@@ -136,7 +155,7 @@ const text = {
     "log_in": "Log in",
     "logging_in": "Logging in...",
     "log_out": "Log out",
-    "log_out_info": "Logging out will delete your login credentials from your device and you will not be able to log in automatically.",
+    "log_out_info": "Logging out will delete your login credentials from your device and you will not be able to log in automatically. You will also not be able to recieve notifications.",
     "this_week": "This week",
     "next_week": "Next week",
     "made_by": "Made by Milk_Cool with ❤️",
@@ -160,6 +179,11 @@ const text = {
     "diploma_responsibility": "Responsibility",
     "diploma_science": "Science",
     "diploma_leadership": "Leadership",
+    "notification_error_physical": "You need to use a physical device to recieve notifications.",
+    "notification_error_token": "Failed to get push token for push notification!",
+    "notification": "Notifications",
+    "notification_disable": "Disable notifications",
+    "notification_enable": "Enable notifications",
   }
 };
 
@@ -173,6 +197,57 @@ export default function App() {
   let days = [];
   for(let i = 0; i < 7; i++)
     days.push((new Date(new Date() - (todayDate.getDayMon() - i) * 1000 * 60 * 60 * 24)).toISOString().split("T")[0]);
+
+  const [expoPushToken, setExpoPushToken] = useState("");
+  const [notification, setNotification] = useState(false);
+  const notificationListener = useRef();
+  const responseListener = useRef();
+
+  const registerNotificationsSchedule = async () => {
+    let token;
+
+    if(Platform.OS === "android")
+      await Notifications.setNotificationChannelAsync("default", {
+        name: "Default",
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: NOTIFICATION_COLOR,
+      });
+    
+    if(Device.isDevice) {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== "granted") {
+        Alert.alert(clang["notification_error_token"]);
+        return;
+      }
+      token = (await Notifications.getExpoPushTokenAsync({ projectId: Constants.expoConfig.extra.eas.projectId })).data;
+      // console.log(token);
+    } else Alert.alert(clang["notification_error_physical"]);
+
+    return token;
+  };
+
+  useEffect(() => {
+    registerNotificationsSchedule().then(setExpoPushToken);
+
+    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+      setNotification(notification);
+    });
+
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      // console.log(response);
+    });
+
+    return () => {
+      Notifications.removeNotificationSubscription(notificationListener.current);
+      Notifications.removeNotificationSubscription(responseListener.current);
+    };
+  }, []);
 
   const [schedule, setSchedule] = useState([]);
   const [selDay, setSelDay] = useState(today);
@@ -191,12 +266,48 @@ export default function App() {
   const [loggingIn, setLoggingIn] = useState(false);
   const [lang, setLang] = useState("en");
   const [clang, setClang] = useState(text["en"]);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.setItem("notifications", notificationsEnabled ? "yes" : "no");
+    (async () => {
+      if(notificationsEnabled) {
+        if(schedule.length > 0) {
+          for(let i of schedule) {
+            if(i.schedules.length == 0) continue;
+            let date = new Date(`${i.date} ${i.period_start}`);
+            date = new Date(date - 5 * 60 * 1000);
+            Notifications.scheduleNotificationAsync({
+              content: {
+                title: { "ru": i.schedules[0].group.subject.subject_name, "en": i.schedules[0].group.subject.subject_name_eng }[lang] + " " + i.schedules[0].room.room_name,
+                body: `${i.period_shortname} ${i.period_name} ${i.period_start}`
+              },
+              trigger: {
+                repeats: true,
+                weekday: date.getDay() + 1,
+                hour: date.getHours(),
+                minute: date.getMinutes()
+              }
+            });
+            console.log("Scheduled", { "ru": i.schedules[0].group.subject.subject_name, "en": i.schedules[0].group.subject.subject_name_eng }[lang] + " " + i.schedules[0].room.room_name, date)
+          }
+        }
+      } else {
+        await Notifications.cancelAllScheduledNotificationsAsync();
+      }
+    })();
+    return () => null;
+  }, [notificationsEnabled, schedule]);
 
   (async () => {
     if(await AsyncStorage.getItem("lang") === null)
       await AsyncStorage.setItem("lang", "en");
     setLang(await AsyncStorage.getItem("lang"));
     setClang(text[lang]);
+
+    if(await AsyncStorage.getItem("notifications") === null)
+      await AsyncStorage.setItem("notifications", "no");
+    setNotificationsEnabled(await AsyncStorage.getItem("notifications") == "yes");
   })();
 
   const setLanguage = async language => {
@@ -559,6 +670,21 @@ export default function App() {
           <Picker.Item label="Русский" value="ru" />
           <Picker.Item label="English" value="en" />
         </Picker>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", maxWidth: 250 }}>
+          <Text style={{ flex: 1, flexDirection: "row" }}>{clang["notification"]}</Text>
+          <Switch
+            trackColor={{ false: SECONDARY_COLOR, true: ACCENT_COLOR }}
+            thumbColor={ notificationsEnabled ? ACCENT_COLOR : BUTTON_TEXT_COLOR }
+            onValueChange={setNotificationsEnabled}
+            value={notificationsEnabled}
+          />
+          {/*<Pressable
+            onPress={() => setNotificationsEnabled(!notificationsEnabled)}
+            style={styles.button}
+          >
+            <Text style={styles.buttonText}>{notificationsEnabled ? clang["notification_disable"] : clang["notification_enable"]}</Text>
+          </Pressable>*/}
+        </View>
       </View>
     )
   }
