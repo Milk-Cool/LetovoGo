@@ -267,8 +267,15 @@ export default function App() {
   const [lang, setLang] = useState("en");
   const [clang, setClang] = useState(text["en"]);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [notificationsToggled, setNotificationsToggled] = useState(false);
+
+  const toggleNotifications = state => {
+    setNotificationsToggled(true);
+    setNotificationsEnabled(state);
+  }
 
   useEffect(() => {
+    if(!notificationsToggled) return () => null;
     AsyncStorage.setItem("notifications", notificationsEnabled ? "yes" : "no");
     (async () => {
       if(notificationsEnabled) {
@@ -305,6 +312,7 @@ export default function App() {
     setLang(await AsyncStorage.getItem("lang"));
     setClang(text[lang]);
 
+    console.log(await AsyncStorage.getItem("notifications"))
     if(await AsyncStorage.getItem("notifications") === null)
       await AsyncStorage.setItem("notifications", "no");
     setNotificationsEnabled(await AsyncStorage.getItem("notifications") == "yes");
@@ -675,7 +683,7 @@ export default function App() {
           <Switch
             trackColor={{ false: SECONDARY_COLOR, true: ACCENT_COLOR }}
             thumbColor={ notificationsEnabled ? ACCENT_COLOR : BUTTON_TEXT_COLOR }
-            onValueChange={setNotificationsEnabled}
+            onValueChange={toggleNotifications}
             value={notificationsEnabled}
           />
           {/*<Pressable
