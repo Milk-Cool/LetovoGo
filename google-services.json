@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1033527728252",
+    "project_id": "letovogo",
+    "storage_bucket": "letovogo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1033527728252:android:5b456b413fd62d211b51f9",
+        "android_client_info": {
+          "package_name": "com.milk_cool.letovogo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1033527728252-l67bhvcafv70sg3fsvr1ni5rchle0a4k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1IT0wYB-V-TbyYZU5IhmNbFqfmaRTNdU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1033527728252-l67bhvcafv70sg3fsvr1ni5rchle0a4k.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
