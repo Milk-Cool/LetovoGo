@@ -465,6 +465,7 @@ export default function App() {
       try {
         await user.login();
         await user.loginOld();
+        await saveLoginPassword();
         if(!silent) Alert.alert(clang["login_success"], clang["login_success_2"]);
         user.weekSchedule().then(setSchedule).catch(e => err(clang["err_schedule"], e));
         user.plan().then(setPlan).catch(e => err(clang["err_plan"], e));
@@ -479,7 +480,6 @@ export default function App() {
         user.olympiads().then(setOlympiads).catch(e => err(clang["err_olympiads"], e));
         setLoggedIn_(true);
         setLoggingIn(false);
-        await saveLoginPassword();
       } catch(_) {
         Alert.alert(clang["login_fail"], clang["login_fail_2"]);
         setLoggingIn(false);
