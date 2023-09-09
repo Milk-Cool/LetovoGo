@@ -459,7 +459,6 @@ export default function App() {
           return Alert.alert(clang["enter_username"], clang["enter_username_2"]);
         if(pwd == "")
           return Alert.alert(clang["enter_password"], clang["enter_password_2"]);
-        await saveLoginPassword();
         user = new Letovo(uname, pwd);
       }
       setLoggingIn(true);
@@ -480,6 +479,7 @@ export default function App() {
         user.olympiads().then(setOlympiads).catch(e => err(clang["err_olympiads"], e));
         setLoggedIn_(true);
         setLoggingIn(false);
+        await saveLoginPassword();
       } catch(_) {
         Alert.alert(clang["login_fail"], clang["login_fail_2"]);
         setLoggingIn(false);
